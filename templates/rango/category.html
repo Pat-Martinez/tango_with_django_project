@@ -7,18 +7,22 @@
 	<body>
 		<h1>{{ category_name }}</h1>
 		{% if category %}
+			{# Category exist. Show Pages #}
 			{% if pages %}
+				{# Pages exist. Display as list #}
 			<ul>
 				{% for page in pages %}
 				<li><a href="{{ page.url }}">{{ page.title }}</a></li>
 				{% endfor %}
 			</ul>
 			{% else %}
-				<strong>No pages currently in category.</strong>
+				<strong>There are no pages in this category.</strong>
 			{% endif %}
+			{# include link to add new pages #}
+			<a href="/rango/category/{{ category_name_url }}/add_page/">Add Page to Category</a>
 		{% else %}
-			The specified category {{ category_name }} does not exist!
+			{# No Category. Infor user. #}
+			The specified category, {{ category_name }}, does not exist!
 		{% endif %}
 	</body>
-
 </html>
