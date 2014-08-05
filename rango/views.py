@@ -2,7 +2,6 @@
 
 from django.shortcuts import render
 from django.template import RequestContext
-from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from rango.models import Category, Page
 from rango.forms import CategoryForm, PageForm, UserForm, UserProfileForm
@@ -26,7 +25,6 @@ def restricted(request):
 
 
 def register(request):
-    context = RequestContext(request)
 
     # A boolean value for telling the template whether the registration was successful.
     # Set to False initially. Code changes value to True when registration succeeds.
@@ -82,14 +80,14 @@ def register(request):
     # print user_form.__dict__
 
     # Render the template depending on the context.
-    return render_to_response(
+    return render(request,
             'rango/register.html',
-            {'user_form': user_form, 'profile_form': profile_form, 'registered': registered},
-            context)
+            {'user_form': user_form, 'profile_form': profile_form, 
+            'register': 'Register', 'registered': registered},
+            )
 
 
 def user_login(request):
-    context = RequestContext(request)
 
     # If the request is a HTTP POST, try to pull out the relevant information.
     if request.method == "POST":
@@ -99,7 +97,7 @@ def user_login(request):
         # Use Django's machinery to attempt to see if the username/password
         # combination is valid - a User object is returned if it is.
         user = authenticate(username=username, password=password)
-
+               
         # If we have a User object, the details are correct.
         # If None (Python's way of representing the absence of a value), no user
         # with matching credentials was found.
@@ -117,14 +115,14 @@ def user_login(request):
         else:
         # Bad login details were provided. So we can't log the user in.
             print "Invalid login details: {0}, {1}".format(username, password)
-            return render_to_response('rango/login.html', {'invalid': "Invalid username or password"}, context,)
+            return render(request, 'rango/login.html', {'invalid': "Invalid username or password"})
 
     # The request is not a HTTP POST, so display the login form.
     # This scenario would most likely be a HTTP GET.
     else:
         # No context variables to pass to the template system, hence the
         # blank dictionary object...
-        return render_to_response('rango/login.html', context)
+        return render(request, 'rango/login.html', {'login': 'Login'})
 
 
 # Use the login_required() decorator to ensure only those logged in can access the view.
@@ -138,10 +136,7 @@ def user_logout(request):
 
 @login_required
 def add_category(request):
-    # Get the context from the request.
-    context = RequestContext(request)
 
-    # A HTTP POST?
     if request.method == "POST":
         form = CategoryForm(request.POST)
 
@@ -162,11 +157,11 @@ def add_category(request):
 
     # Bad form (or form details), no form supplied...
     # Render the form with error messages (if any).
-    return render_to_response('rango/add_category.html', {'form': form}, context)
+    return render(request, 'rango/add_category.html', {'form': form,
+                'add_category': "Add a Category"},)
 
 @login_required
 def add_page(request, category_name_url):
-    context = RequestContext(request)
     category_name = url_to_name(category_name_url)
   
     if request.method == "POST":
@@ -185,7 +180,7 @@ def add_page(request, category_name_url):
             except Category.DoesNotExist:
                 # If we get here, the category does not exist.
                 # Go back and render the add category form as a way of saying the category does not exist.
-                return render_to_response('rango/add_category.html', {}, context)
+                return render(request, 'rango/add_category.html', {},)
             
             # Create default value for number of page views.
             page.views = 0
@@ -200,14 +195,14 @@ def add_page(request, category_name_url):
     else:
         form = PageForm()
 
-    return render_to_response('rango/add_page.html',
+    return render(request, 'rango/add_page.html',
         {'category_name_url': category_name_url,
-         'category_name': category_name, 'form': form},
-         context)
+         'category_name': category_name, 'form': form,
+         'add_page': 'Add Page'})
 
     # Bad form (or form details), no form supplied...
     # Render the form with error messages (if any).
-    return render_to_response('rango/add_page.html', {'form': form}, context)
+    return render('rango/add_page.html', {'form': form, 'add_page': 'Add Page'})
 
 
 def index(request):
@@ -230,17 +225,14 @@ def index(request):
 
 
 	# Render the response and return to the client.
-    return render_to_response('rango/index.html', context_dict, context)
+    return render(request, 'rango/index.html', context_dict,)
 	
 def about(request):
-    context = RequestContext(request)
-    context_dict = {'welcome': "WELCOME {{ user.username }}!"}
-    return render_to_response('rango/about.html', context_dict, context)
+    context_dict = {'about': "About",}
+    return render(request, 'rango/about.html', context_dict)
 	# return HttpResponse("Rango Says: Here is the about page. <a href='/rango/'>Home</a>")
 
 def category(request, category_name_url):
-    # Request our context from the request passed to us.
-    context = RequestContext(request)
 
     # Change underscores in the category name to spaces.
     # URLs don't handle spaces well, so we encode them as underscores.
@@ -273,5 +265,4 @@ def category(request, category_name_url):
         pass
 
     # Go render the response and return it to the client.
-    return render_to_response('rango/category.html', context_dict, context)
-    
+    return render(request, 'rango/category.html', context_dict)
